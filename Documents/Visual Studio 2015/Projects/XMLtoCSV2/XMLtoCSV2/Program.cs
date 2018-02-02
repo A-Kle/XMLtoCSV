@@ -12,8 +12,8 @@ namespace XMLtoCSV2
     {
         static void Main(string[] args)
         {        
-            XDocument xdoc = XDocument.Load(@"test.xml");
-            File.WriteAllLines("C:\\testCSV.csv", ConvertToCSV.Convert(xdoc, ";"));
+            XDocument xdoc = XDocument.Load("C:\\Moje Projekty\\Zadania z XML\\test.xml");
+            File.WriteAllLines("C:\\Moje Projekty\\testCSV.csv", ConvertToCSV.Convert(xdoc, ";"));
         }
     }
 }

@@ -12,100 +12,46 @@ namespace XMLtoCSV2
 {
     public static class ConvertToCSV
     {
-        private static List<string> ValueLineCreator(string[,] values, string
-             separator)
-        {
-            int row = values.GetLength(0);
-            int column = values.GetLength(1);
-            List<string> line = new List<string>();
-
-            string[,] transposed = new string[values.GetLength(1), values.GetLength(0)];
-
-
-            for (int c = 0; c < column; c++)
-            {
-                for (int r = 0; r < row; r++)
-                {
-                    transposed[c, r] = values[r, c];
-                }
-            }
-            foreach (string s in transposed)
-            {
-                line.Add(s + separator);
-            }
-            return line;
-        }
-
-
          public static List<string> Convert(XDocument xml, string separator)
         {
+            Dictionary<string, string> dict = new Dictionary<string, string>();
             List<string> list = new List<string>();
-            List<string> line = new List<string>();
+            List<string> tags = new List<string>();
+            List<string> values = new List<string>();
 
-            int elNumbers = xml.Descendants().Select(el => el.Name).Distinct().Count(); //returns tags amount 
-            int allElNumbers = xml.Descendants().Select(el => el.Name).Count();
-            string[] names = new string[elNumbers];
-            string[,] value = new string[elNumbers, allElNumbers];
-
-            foreach (var name in xml.Descendants().Select(el => el.Name).Distinct())
-            {
-                int x = 0;
-                names[x] = name.LocalName;
-                line.Add(names[x]); //separator removed inside
-                x++;
-            }
-            string previous = "";
-
-            int i = 0;
-
-            int r = 1;
-            int z = 0;
-
-            int m = 1;
             foreach (XElement el in xml.Descendants())
             {
-                string start = " ";
-                if (el.Name.LocalName != start)
+                if(dict.ContainsKey(el.Name.LocalName))
                 {
-
+                    values.Add(el.Value + separator);
                 }
                 else
                 {
-                    line.Add("\r\n");
-                }
-                /*value[0, i] = el.Name.LocalName;
-                if (el != el.Parent)
-                {
-                    if (el.Name.LocalName == previous) //repetitive tag
+                    if(!(el.HasElements))
                     {
-                        m++;
-                        value[m, i] = el.Value;
-                    }
-                    else    //non repetitive tag
-                    {
-                        m = 1;
-                        value[r, i] = el.Value;
-
-                    }
-                    i++;
-                    previous = el.Name.LocalName;
+                        dict.Add(el.Name.LocalName, el.Value);
+                        values.Add(el.Value+ separator);
+                    }  
                 }
-                else
-                {
-                    value[r, z] = "";
-
-                }
-                          break;*/
-                start = el.Name.LocalName;
+            }
+            for(int i = dict.Keys.Count; i < values.Count; i+= dict.Keys.Count)
+            {
+                values.Insert(i, "\r\n");
+                i += 1;
             }
 
-            Console.WriteLine(names.Length);
-            Console.WriteLine(value.Length);
-            Console.WriteLine(value[3, 1]);
-            list.Add(string.Join(separator, line));
+            foreach (KeyValuePair<string, string> pair in dict)
+            {
+                tags.Add(pair.Key);
+            }
+
+            list.Add(String.Join(separator, tags));
+            list.Add(String.Join("", values));
+            foreach(KeyValuePair<string,string> k in dict)
+            {
+                Console.WriteLine(k.Value);
+            }
             return list;
         }
     }
 }
-  
-
