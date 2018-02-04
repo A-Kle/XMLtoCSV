@@ -1,56 +1,60 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml;
 using System.Xml.Linq;
-using System.IO;
 
 
 namespace XMLtoCSV2
 {
     public static class ConvertToCSV
     {
-         public static List<string> Convert(XDocument xml, string separator)
+        /// <summary>
+        /// Dictionary dict contains each element(tag + value) from document
+        /// </summary>
+        /// <param name="xml">XML document to be converted</param>
+        /// <param name="separator">Separator type for CSV document</param>
+        /// <returns>List is returned as each row in CSV document, first line is tags</returns>
+        
+        public static List<string> Convert(XDocument xml, string separator)
         {
-            Dictionary<string, string> dict = new Dictionary<string, string>();
+            Dictionary<string, List<string>> dict = new Dictionary<string, List<string>>();
             List<string> list = new List<string>();
-            List<string> tags = new List<string>();
-            List<string> values = new List<string>();
 
             foreach (XElement el in xml.Descendants())
             {
-                if(dict.ContainsKey(el.Name.LocalName))
+                if(dict.ContainsKey(el.Name.LocalName)) //if dictionary contains key adds value to list of existing key
                 {
-                    values.Add(el.Value + separator);
+                    dict[el.Name.LocalName].Add(el.Value); 
                 }
-                else
+                else //if dictionary doesnt contain key creates new list with specified value
                 {
-                    if(!(el.HasElements))
-                    {
-                        dict.Add(el.Name.LocalName, el.Value);
-                        values.Add(el.Value+ separator);
+                    if(!(el.HasElements)) //checks if element(tag + value) in document has any nested elements
+                    {                           //removes adding values for parent elements what results in joining all values of children
+                        dict.Add(el.Name.LocalName, new List<string> { el.Value });
                     }  
                 }
             }
-            for(int i = dict.Keys.Count; i < values.Count; i+= dict.Keys.Count)
+            list.Add(String.Join(separator, dict.Keys));
+            string line = "";
+            int i = 0;
+            foreach (XElement el in xml.Descendants()) //iterates over each pair(tag + value) in xml document
             {
-                values.Insert(i, "\r\n");
-                i += 1;
+                foreach(string key in dict.Keys)
+                {
+                    if(i > dict[key].Count-1)
+                    {
+                        line = line + separator; //if i extends index of value list returns empty field
+                    }
+                    else
+                    {
+                        line = line + dict[key][i]+separator; //adds value to the line
+                    }
+                }
+                i++;
+                line = line + "\r\n"; //each line is separated with new line character
             }
-
-            foreach (KeyValuePair<string, string> pair in dict)
-            {
-                tags.Add(pair.Key);
-            }
-
-            list.Add(String.Join(separator, tags));
-            list.Add(String.Join("", values));
-            foreach(KeyValuePair<string,string> k in dict)
-            {
-                Console.WriteLine(k.Value);
-            }
+            list.Add(line);
+  
+            Console.WriteLine();
             return list;
         }
     }
